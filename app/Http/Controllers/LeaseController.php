@@ -25,6 +25,7 @@ class LeaseController extends Controller
             ->select([
                 'leases.*',
                 DB::raw('properties.vp_case_no as property_vp'),
+                DB::raw('properties.gazette_no as property_gazette'),
                 DB::raw('lessees.name as lessee_name_col'),
             ]);
 
@@ -32,8 +33,9 @@ class LeaseController extends Controller
             // show joined values (fallback to empty string)
             ->addColumn('property_ref', fn($l) => $l->property_vp ?? '')
             ->addColumn('lessee_name',  fn($l) => $l->lessee_name_col ?? '')
-            ->addColumn('years_due',    fn($l) => $l->years_due)                         
-            ->addColumn('amount_due',   fn($l) => number_format($l->total_due, 2))       
+            ->addColumn('missing_gazette', fn($l) => Property::isGazetteMissing($l->property_gazette ?? null))
+            ->addColumn('years_due',    fn($l) => $l->years_due)
+            ->addColumn('amount_due',   fn($l) => number_format($l->total_due, 2))
 
             ->addColumn('actions', function($l){
                 $edit  = route('leases.edit', $l->id);

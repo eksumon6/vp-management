@@ -26,6 +26,22 @@ class Property extends Model
         return $this->hasMany(Lease::class);
     }
 
+    /** গেজেট নং অনুপস্থিত/হাইফেন/"নেই" কি না */
+    public static function isGazetteMissing(?string $value): bool
+    {
+        $val = trim((string)($value ?? ''));
+        if ($val === '') return true;
+
+        $normalized = mb_strtolower($val, 'UTF-8');
+        return in_array($normalized, ['-', 'নেই'], true);
+    }
+
+    /** অ্যাট্রিবিউট accessor: missing gazette? */
+    public function getGazetteMissingAttribute(): bool
+    {
+        return static::isGazetteMissing($this->gazette_no);
+    }
+
     /** মোট বার্ষিক রেট (সব প্লটের যোগফল) */
     public function getTotalAnnualRateAttribute(): float
     {

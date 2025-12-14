@@ -27,12 +27,14 @@ class ApplicationController extends Controller
             ->select([
                 'applications.*',
                 DB::raw('properties.vp_case_no as vp_case_no'),
+                DB::raw('properties.gazette_no as property_gazette'),
                 DB::raw('lessees.name as lessee_name'),
             ]);
 
         return DataTables::eloquent($q)
             ->addColumn('vp_case_no', fn($r) => $r->vp_case_no ?? '')
             ->addColumn('lessee_name', fn($r) => $r->lessee_name ?? '')
+            ->addColumn('missing_gazette', fn($r) => Property::isGazetteMissing($r->property_gazette ?? null))
             ->addColumn('type_label', fn($r) => $r->type === 'renewal' ? 'লীজ নবায়নের আবেদন' : 'মালিকানা পরিবর্তনের আবেদন')
             ->addColumn('app_date_fmt', fn($r) => optional($r->app_date)->format('d/m/Y'))
             ->addColumn('files', function($r){

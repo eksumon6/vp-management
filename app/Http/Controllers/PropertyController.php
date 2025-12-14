@@ -37,6 +37,7 @@ class PropertyController extends Controller
             ->addColumn('union', fn($p)=> $p->union)               // <-- JSON key "union"
             ->addColumn('mouza', fn($p)=> $p->mouza)
             ->addColumn('khatian_no', fn($p)=> $p->khatian_no)
+            ->addColumn('missing_gazette', fn($p)=> $p->gazette_missing)
 
             // lessee names (unique, comma-separated) if any
             ->addColumn('lessee_names', function ($p) {

@@ -28,7 +28,10 @@
         {title:'ফাইলসমূহ', data:'files', orderable:false, searchable:false},
         {title:'অ্যাকশন', data:'actions', orderable:false, searchable:false}
       ],
-      order:[[0,'desc']]
+      order:[[0,'desc']],
+      rowCallback: function(row, data){
+        $(row).toggleClass('table-warning', !!data.missing_gazette);
+      }
     });
   });
   </script>

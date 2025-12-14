@@ -86,9 +86,12 @@
       // প্রতিটি রোতে সার্ভার দেয়া class বসিয়ে দিচ্ছি
       rowCallback: function(row, data){
         // remove previous color classes to avoid stacking (if table redraws)
-        $(row).removeClass('table-danger table-info');
+        $(row).removeClass('table-danger table-info table-warning');
         if (data.row_class) {
           $(row).addClass(data.row_class);
+        }
+        if (data.missing_gazette) {
+          $(row).addClass('table-warning');
         }
       },
 
