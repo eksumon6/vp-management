@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lease;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -67,6 +68,7 @@ class ReportController extends Controller
             ->addColumn('last_paid',  fn($l)=>$l->last_paid_year ?? ($l->first_year-1))
             ->addColumn('years_due',  fn($l)=>$l->years_due)
             ->addColumn('amount_due', fn($l)=>number_format($l->total_due,2))
+            ->addColumn('missing_gazette', fn($l)=> Property::isGazetteMissing($l->property?->gazette_no ?? null))
 
             // সার্ভার-সাইডে রো ক্লাস নির্ধারণ
             ->addColumn('row_class', function($l) use ($appAgg) {

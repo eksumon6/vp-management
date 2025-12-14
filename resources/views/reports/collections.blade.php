@@ -126,7 +126,10 @@
       { title:'DCR তারিখ',          data:'dcr_date',      name:'lease_payments.receipt_date' },
       { title:'টাকা',               data:'amount',        name:'lease_payments.amount_paid' }
     ],
-    order:[[4,'desc']]
+    order:[[4,'desc']],
+    rowCallback: function(row, data){
+      $(row).toggleClass('table-warning', !!data.missing_gazette);
+    }
   });
 
   // ❌ Do NOT prevent default. Let form submit so total updates.

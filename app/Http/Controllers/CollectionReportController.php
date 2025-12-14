@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Property;
 use App\Models\LeasePayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,7 @@ class CollectionReportController extends Controller
             ->select([
                 'lease_payments.*', // keep all attributes so casts apply
                 DB::raw('properties.vp_case_no as vp_case_no'),
+                DB::raw('properties.gazette_no as property_gazette'),
                 DB::raw('COALESCE(NULLIF(GROUP_CONCAT(DISTINCT lp.name ORDER BY lp.id SEPARATOR ", "), ""), lessees.name) AS lessee_names'),
             ]);
 
@@ -80,6 +82,7 @@ class CollectionReportController extends Controller
                 $t = (int)$r->to_year;
                 return $t && $t !== $f ? "{$f}–{$t}" : (string)$f;
             })
+            ->addColumn('missing_gazette', fn($r) => Property::isGazetteMissing($r->property_gazette ?? null))
             ->addColumn('dcr_no', fn($r) => $r->receipt_no)
             ->addColumn('dcr_date', fn($r) => $r->receipt_date ? $r->receipt_date->format('d/m/Y') : '')
             ->addColumn('amount', fn($r) => number_format((float)$r->amount_paid, 2))
