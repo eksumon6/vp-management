@@ -5,6 +5,9 @@
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h1 class="h4 text-success mb-0"><i class="bi bi-cash-coin"></i> বকেয়া রিপোর্ট</h1>
     <div>
+      <a href="{{ route('reports.notice-status') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-clipboard-data"></i> নোটিশ স্ট্যাটাস রিপোর্ট
+      </a>
       <button id="btn-preview" class="btn btn-primary">
         <i class="bi bi-filetype-pdf"></i> নির্বাচিতদের নোটিশ প্রিভিউ
       </button>

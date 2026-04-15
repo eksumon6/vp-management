@@ -43,6 +43,10 @@ class NoticeController extends Controller
             'date_en'     => 'required|string|max:255',
             'lease_ids'   => 'required|array',
             'lease_ids.*' => 'exists:leases,id',
+            'process_no'  => 'nullable|string|max:255',
+            'issue_date'  => 'nullable|date',
+            'due_year'    => 'nullable|string|max:255',
+            'due_amount'  => 'nullable|string|max:255',
         ]);
 
         $by     = app('calendar')->currentBanglaYear();
@@ -81,6 +85,9 @@ class NoticeController extends Controller
             'date_bn' => $validated['date_bn'],
             'date_en' => $validated['date_en'],
             'by'      => $by,
+            'process_no' => $validated['process_no'] ?? '',
+            'due_year'   => $validated['due_year'] ?? '',
+            'due_amount' => $validated['due_amount'] ?? '',
         ], [], [
             'format'            => 'A4',
             'orientation'       => 'P',
@@ -105,6 +112,10 @@ class NoticeController extends Controller
             'date_en'     => 'required|string|max:255',
             'lease_ids'   => 'required|array',
             'lease_ids.*' => 'exists:leases,id',
+            'process_no'  => 'nullable|string|max:255',
+            'issue_date'  => 'nullable|date',
+            'due_year'    => 'nullable|string|max:255',
+            'due_amount'  => 'nullable|string|max:255',
         ]);
 
         $by     = app('calendar')->currentBanglaYear();
@@ -146,6 +157,9 @@ class NoticeController extends Controller
             'date_bn' => $validated['date_bn'],
             'date_en' => $validated['date_en'],
             'by'      => $by,
+            'process_no' => $validated['process_no'] ?? '',
+            'due_year'   => $validated['due_year'] ?? '',
+            'due_amount' => $validated['due_amount'] ?? '',
         ], [], [
             'format'            => 'A4',
             'orientation'       => 'P',
@@ -165,6 +179,10 @@ class NoticeController extends Controller
             Notice::create([
                 'lease_id'     => $lease->id,
                 'generated_by' => $userId,
+                'process_no'   => $validated['process_no'] ?? null,
+                'issue_date'   => $validated['issue_date'] ?? null,
+                'due_year'     => $validated['due_year'] ?? null,
+                'due_amount'   => $validated['due_amount'] ?? null,
                 'file_path'    => $fullPath,
                 'generated_at' => now(),
             ]);

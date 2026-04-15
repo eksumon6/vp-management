@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lease;
+use App\Models\Notice;
 use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +92,95 @@ class ReportController extends Controller
                 return $btnRenew.' | '.$btnNotice;
             })
             ->rawColumns(['checkbox','actions'])
+            ->toJson();
+    }
+
+    public function noticeStatus(Request $req)
+    {
+        $by    = (int)($req->get('bangla_year') ?: app('calendar')->currentBanglaYear());
+        $union = $req->get('union');
+        $mouza = $req->get('mouza');
+        $case  = $req->get('vp_case_no');
+
+        $q = Lease::query();
+        if ($union) {
+            $q->whereHas('property', fn($qq) => $qq->where('union','like',"%$union%"));
+        }
+        if ($mouza) {
+            $q->whereHas('property', fn($qq) => $qq->where('mouza','like',"%$mouza%"));
+        }
+        if ($case)  {
+            $q->whereHas('property', fn($qq) => $qq->where('vp_case_no','like',"%$case%"));
+        }
+
+        $rows = $q->withCount('notices')->get()->filter(fn($l) => $l->years_due > 0)->values();
+
+        $totalDueLeases         = $rows->count();
+        $noticedLeasesCount     = $rows->where('notices_count', '>', 0)->count();
+        $withoutNoticeLeaseCount = $totalDueLeases - $noticedLeasesCount;
+
+        return view('reports.notice_status', compact(
+            'by',
+            'union',
+            'mouza',
+            'case',
+            'totalDueLeases',
+            'noticedLeasesCount',
+            'withoutNoticeLeaseCount'
+        ));
+    }
+
+    public function noticeStatusData(Request $req)
+    {
+        $by    = (int)($req->get('bangla_year') ?: app('calendar')->currentBanglaYear());
+        $union = $req->get('union');
+        $mouza = $req->get('mouza');
+        $case  = $req->get('vp_case_no');
+
+        $q = Lease::with(['property','lessee'])
+            ->select('leases.*')
+            ->addSelect([
+                'notice_count' => Notice::selectRaw('COUNT(*)')
+                    ->whereColumn('notices.lease_id', 'leases.id'),
+                'last_notice_issue_date' => Notice::select('issue_date')
+                    ->whereColumn('notices.lease_id', 'leases.id')
+                    ->orderByRaw('issue_date IS NULL')
+                    ->orderByDesc('issue_date')
+                    ->orderByDesc('generated_at')
+                    ->limit(1),
+                'last_notice_process_no' => Notice::select('process_no')
+                    ->whereColumn('notices.lease_id', 'leases.id')
+                    ->orderByRaw('issue_date IS NULL')
+                    ->orderByDesc('issue_date')
+                    ->orderByDesc('generated_at')
+                    ->limit(1),
+            ]);
+
+        if ($union) {
+            $q->whereHas('property', fn($qq) => $qq->where('union','like',"%$union%"));
+        }
+        if ($mouza) {
+            $q->whereHas('property', fn($qq) => $qq->where('mouza','like',"%$mouza%"));
+        }
+        if ($case) {
+            $q->whereHas('property', fn($qq) => $qq->where('vp_case_no','like',"%$case%"));
+        }
+
+        $rows = $q->get()->filter(fn($l) => $l->years_due > 0)->values();
+
+        return DataTables::of($rows)
+            ->addColumn('case_no', fn($l) => $l->property->vp_case_no ?? '')
+            ->addColumn('union_mouza', fn($l) => $l->property ? ($l->property->union.' / '.$l->property->mouza) : '')
+            ->addColumn('lessee_name', fn($l) => $l->lessee->name ?? '')
+            ->addColumn('years_due', fn($l) => $l->years_due)
+            ->addColumn('amount_due', fn($l) => number_format($l->total_due, 2))
+            ->addColumn('notice_count', fn($l) => (int)($l->notice_count ?? 0))
+            ->addColumn('last_notice_issue_date', function ($l) {
+                if (empty($l->last_notice_issue_date)) return '—';
+                return \Carbon\Carbon::parse($l->last_notice_issue_date)->format('Y-m-d');
+            })
+            ->addColumn('last_notice_process_no', fn($l) => $l->last_notice_process_no ?: '—')
+            ->addColumn('notice_status', fn($l) => ((int)($l->notice_count ?? 0) > 0) ? 'নোটিশ হয়েছে' : 'নোটিশ হয়নি')
             ->toJson();
     }
 }
