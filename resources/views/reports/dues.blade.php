@@ -46,10 +46,40 @@
     @csrf
   </form>
 
+  {{-- নোটিশ জারি মার্ক করার জন্য পপআপ --}}
+  <div class="modal fade" id="notice-issued-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">নোটিশ জারি তথ্য সংরক্ষণ</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="issue-lease-id">
+          <div class="mb-3">
+            <label class="form-label">নোটিশ জারির তারিখ (ঐচ্ছিক)</label>
+            <input type="date" id="issue-date" class="form-control">
+          </div>
+          <div class="mb-1">
+            <label class="form-label">প্রসেস নং (ঐচ্ছিক)</label>
+            <input type="text" id="issue-process-no" class="form-control" placeholder="উদাহরণ: ৪৫.০০.০০০০.০০১.১২.৩৪">
+          </div>
+          <small class="text-muted">ফাঁকা রেখেও সেভ করা যাবে।</small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">বন্ধ</button>
+          <button type="button" class="btn btn-success" id="save-issued-btn">সেভ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
   $(function(){
     // ---- Persistent selection store ----
     const selectedIds = new Set();
+    const issueModalEl = document.getElementById('notice-issued-modal');
+    const issueModal = new bootstrap.Modal(issueModalEl);
 
     // ---- DataTable init ----
     const table = $('#dues-table').DataTable({
@@ -79,7 +109,8 @@
         // সার্ভার থেকে পাওয়া row_class এখানে আনছি (UI তে দেখানো হবে না)
         {title:'_cls', data:'row_class', visible:false, searchable:false},
 
-        {title:'অ্যাকশন', data:'actions', orderable:false, searchable:false}
+        {title:'অ্যাকশন', data:'actions', orderable:false, searchable:false},
+        {title:'নোটিশ জারি হয়েছে কি না', data:'notice_issued', orderable:false, searchable:false}
       ],
       order:[[0,'desc']],
 
@@ -175,6 +206,48 @@
       $form.find('input[name="lease_ids[]"]').remove();
       ids.forEach(id => $('<input>',{type:'hidden',name:'lease_ids[]',value:id}).appendTo($form));
       $form.trigger('submit');
+    });
+
+    // ---- Notice issued checkbox/modal flow ----
+    $('#dues-table').on('change', '.notice-issued-chk', function(e){
+      e.stopPropagation();
+      const $cb = $(this);
+      const leaseId = String($cb.data('lease-id') || '');
+      if (!leaseId) return;
+
+      // এই চেকবক্স uncheck না করে edit/save modal ওপেন করাই UX
+      $cb.prop('checked', true);
+
+      $('#issue-lease-id').val(leaseId);
+      $('#issue-date').val($cb.data('issue-date') || '');
+      $('#issue-process-no').val($cb.data('process-no') || '');
+      issueModal.show();
+    });
+
+    $('#save-issued-btn').on('click', function(){
+      const leaseId = $('#issue-lease-id').val();
+      if (!leaseId) return;
+
+      const payload = {
+        lease_id: leaseId,
+        issue_date: $('#issue-date').val(),
+        process_no: $('#issue-process-no').val(),
+        _token: '{{ csrf_token() }}'
+      };
+
+      const $btn = $(this).prop('disabled', true).text('সেভ হচ্ছে...');
+      $.post('{{ route('notices.mark-issued') }}', payload)
+        .done(function(){
+          issueModal.hide();
+          table.ajax.reload(null, false);
+        })
+        .fail(function(xhr){
+          const msg = xhr.responseJSON?.message || 'সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।';
+          alert(msg);
+        })
+        .always(function(){
+          $btn.prop('disabled', false).text('সেভ');
+        });
     });
 
     // DataTables default alert রাখছি (debug কাজে লাগে)

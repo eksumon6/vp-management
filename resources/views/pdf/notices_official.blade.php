@@ -117,7 +117,12 @@
   <table class="meta">
     <tr>
       <td class="fixbn" style="width: 70%">
-        প্রসেস নং- <span class="blank-line">&nbsp;</span>
+        প্রসেস নং-
+        @if(!empty($process_no))
+          <span class="fixbn">{{ bn($process_no) }}</span>
+        @else
+          <span class="blank-line">&nbsp;</span>
+        @endif
       </td>
       <td class="right fixbn date-cell">
         <table class="date-grid" aria-hidden="true">
@@ -152,6 +157,21 @@
     যার ফলে সরকার রাজস্ব আদায় থেকে বঞ্চিত হচ্ছে। উক্ত সম্পত্তির হাল সন পর্যন্ত (বাংলা {{ bn($by) }} বঙ্গাব্দ) লীজ মানি আগামী ০৭ কর্মদিবসের মধ্যে পরিশোধ করতে বলা হলো।
     অন্যথায় বিধি মোতাবেক লীজ বাতিলপূর্বক বকেয়া আদায়ে আইনানুগ ব্যবস্থা গ্রহণ করা হবে।
   </div>
+
+  @if(!empty($due_year) || !empty($due_amount))
+    <div class="body-text fixbn">
+      <b>বকেয়া বিবরণ:</b><br>
+      @if(!empty($due_year))
+        বকেয়া বছর: {{ bn($due_year) }}
+      @endif
+      @if(!empty($due_year) && !empty($due_amount))
+        <br>
+      @endif
+      @if(!empty($due_amount))
+        বকেয়া টাকা: {{ bn($due_amount) }}
+      @endif
+    </div>
+  @endif
 
   <h3 class="tafsil-title fixbn">তফসিল:</h3>
 
