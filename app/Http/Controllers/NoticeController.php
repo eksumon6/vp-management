@@ -190,4 +190,42 @@ class NoticeController extends Controller
 
         return response()->download(Storage::path($fullPath));
     }
+
+    // বকেয়া রিপোর্ট টেবিল থেকে ম্যানুয়ালি "নোটিশ জারি হয়েছে" মার্ক করা
+    public function markIssued(Request $req)
+    {
+        $validated = $req->validate([
+            'lease_id'   => 'required|exists:leases,id',
+            'issue_date' => 'nullable|date',
+            'process_no' => 'nullable|string|max:255',
+        ]);
+
+        $issueDate = $validated['issue_date'] ?? now('Asia/Dhaka')->toDateString();
+
+        $notice = Notice::query()
+            ->where('lease_id', $validated['lease_id'])
+            ->whereDate('issue_date', $issueDate)
+            ->where('file_path', 'manual_notice_issue')
+            ->latest('id')
+            ->first();
+
+        if ($notice) {
+            $notice->update([
+                'generated_by' => auth()->id() ?: null,
+                'process_no'   => $validated['process_no'] ?? null,
+                'generated_at' => now(),
+            ]);
+        } else {
+            Notice::create([
+                'lease_id'     => $validated['lease_id'],
+                'generated_by' => auth()->id() ?: null,
+                'process_no'   => $validated['process_no'] ?? null,
+                'issue_date'   => $issueDate,
+                'file_path'    => 'manual_notice_issue',
+                'generated_at' => now(),
+            ]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
 }
