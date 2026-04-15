@@ -36,6 +36,23 @@
         <label class="form-label">তারিখ (ইংরেজি)</label>
         <input name="date_en" id="date_en_field" class="form-control" value="{{ old('date_en', $defaultDateEn) }}" placeholder="{{ now('Asia/Dhaka')->isoFormat('MMMM YYYY') }}">
       </div>
+      <div class="col-md-6">
+        <label class="form-label">প্রসেস নং (ঐচ্ছিক)</label>
+        <input name="process_no" class="form-control" value="{{ old('process_no') }}" placeholder="উদাহরণ: ৪৫.০০.০০০০.০০১.১২.৩৪">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">নোটিশ জারির তারিখ (ঐচ্ছিক)</label>
+        <input type="date" name="issue_date" class="form-control" value="{{ old('issue_date') }}">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">বকেয়া বছর</label>
+        <input name="due_year" class="form-control" value="{{ old('due_year') }}" placeholder="উদাহরণ: ১৪২৮-১৪৩০">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">বকেয়া টাকা</label>
+        <input name="due_amount" class="form-control" value="{{ old('due_amount') }}" placeholder="উদাহরণ: ২৫,০০০">
+      </div>
 
       <div class="col-12">
         <div class="table-responsive">

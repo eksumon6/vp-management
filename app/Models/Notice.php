@@ -11,7 +11,21 @@ class Notice extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['lease_id','generated_by','file_path','generated_at'];
+    protected $fillable = [
+        'lease_id',
+        'generated_by',
+        'process_no',
+        'issue_date',
+        'due_year',
+        'due_amount',
+        'file_path',
+        'generated_at',
+    ];
+
+    protected $casts = [
+        'generated_at' => 'datetime',
+        'issue_date'   => 'date',
+    ];
 
     public function lease(){ return $this->belongsTo(Lease::class); }
 }

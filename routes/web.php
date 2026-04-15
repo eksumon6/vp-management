@@ -38,6 +38,8 @@ Route::get('/ajax/property/{property}', [PropertyController::class, 'showJson'])
 // Reports (dues)
 Route::get('/reports/dues',      [ReportController::class, 'dues'])->name('reports.dues');
 Route::get('/reports/dues-data', [ReportController::class, 'duesData'])->name('reports.dues.data');
+Route::get('/reports/notice-status',      [ReportController::class, 'noticeStatus'])->name('reports.notice-status');
+Route::get('/reports/notice-status-data', [ReportController::class, 'noticeStatusData'])->name('reports.notice-status.data');
 
 // Payments (renewal)
 Route::get('/payments/create/{lease}', [PaymentsController::class, 'create'])->name('payments.create');
