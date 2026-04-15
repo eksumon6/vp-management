@@ -17,10 +17,16 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    public const ROLE_DEVELOPER              = 'developer';
+    public const ROLE_ASSISTANT_COMMISSIONER = 'assistant_commissioner';
+    public const ROLE_UNO                    = 'uno';
+    public const ROLE_OFFICE_ASSISTANT       = 'office_assistant';
+
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -42,4 +48,33 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public static function roleLabels(): array
+    {
+        return [
+            self::ROLE_DEVELOPER              => 'ডেভেলপার (সুপার অ্যাডমিন)',
+            self::ROLE_ASSISTANT_COMMISSIONER => 'সহকারী কমিশনার (ভূমি)',
+            self::ROLE_UNO                    => 'উপজেলা নির্বাহী অফিসার',
+            self::ROLE_OFFICE_ASSISTANT       => 'অফিস সহকারী',
+        ];
+    }
+
+    public function roleLabel(): string
+    {
+        return self::roleLabels()[$this->role] ?? $this->role;
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    public function hasAnyRole(array $roles): bool
+    {
+        if ($this->role === self::ROLE_DEVELOPER) {
+            return true; // সুপার এডমিন সবকিছু করতে পারবে
+        }
+
+        return in_array($this->role, $roles, true);
+    }
 }

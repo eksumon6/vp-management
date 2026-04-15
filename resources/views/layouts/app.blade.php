@@ -55,16 +55,33 @@
       </button>
 
       <div class="collapse navbar-collapse" id="topNav">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link {{ request()->routeIs('dashboard') ? 'active fw-bold text-success' : '' }}" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2"></i> ড্যাশবোর্ড</a></li>
-          <li class="nav-item"><a class="nav-link {{ request()->routeIs('properties.index') ? 'active fw-bold text-success' : '' }}" href="{{ route('properties.index') }}"><i class="bi bi-geo-alt"></i> সম্পত্তি</a></li>
-          <li class="nav-item"><a class="nav-link {{ request()->routeIs('lessees.index') ? 'active fw-bold text-success' : '' }}" href="{{ route('lessees.index') }}"><i class="bi bi-person-badge"></i> লিজগ্রহীতা</a></li>
-          <li class="nav-item"><a class="nav-link {{ request()->routeIs('leases.index') ? 'active fw-bold text-success' : '' }}" href="{{ route('leases.index') }}"><i class="bi bi-journal-text"></i> লীজ ব্যবস্থাপনা</a></li>
-          <li class="nav-item"><a class="nav-link {{ request()->routeIs('reports.dues') ? 'active fw-bold text-success' : '' }}" href="{{ route('reports.dues') }}"><i class="bi bi-cash-coin"></i> বকেয়া তালিকা</a></li>
-          <li class="nav-item"><a class="nav-link {{ request()->routeIs('reports.collections') ? 'active fw-bold text-success' : '' }}" href="{{ route('reports.collections') }}"><i class="bi bi-journal-text"></i> আদায় রিপোর্ট</a></li>
-          <li class="nav-item"><a class="nav-link {{ request()->routeIs('applications.*') ? 'active fw-bold text-success' : '' }}" href="{{ route('applications.index') }}"><i class="bi bi-journal-text"></i> আবেদন</a></li>
-          <li class="nav-item"><a class="nav-link {{ request()->routeIs('ordersheet.*') ? 'active fw-bold text-success' : '' }}" href="{{ route('ordersheet.index') }}"><i class="bi bi-journal-text"></i> অর্ডার শীট</a></li>
-        </ul>
+        @auth
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('dashboard') ? 'active fw-bold text-success' : '' }}" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2"></i> ড্যাশবোর্ড</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('properties.index') ? 'active fw-bold text-success' : '' }}" href="{{ route('properties.index') }}"><i class="bi bi-geo-alt"></i> সম্পত্তি</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('lessees.index') ? 'active fw-bold text-success' : '' }}" href="{{ route('lessees.index') }}"><i class="bi bi-person-badge"></i> লিজগ্রহীতা</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('leases.index') ? 'active fw-bold text-success' : '' }}" href="{{ route('leases.index') }}"><i class="bi bi-journal-text"></i> লীজ ব্যবস্থাপনা</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('reports.dues') ? 'active fw-bold text-success' : '' }}" href="{{ route('reports.dues') }}"><i class="bi bi-cash-coin"></i> বকেয়া তালিকা</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('reports.collections') ? 'active fw-bold text-success' : '' }}" href="{{ route('reports.collections') }}"><i class="bi bi-journal-text"></i> আদায় রিপোর্ট</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('applications.*') ? 'active fw-bold text-success' : '' }}" href="{{ route('applications.index') }}"><i class="bi bi-journal-text"></i> আবেদন</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('ordersheet.*') ? 'active fw-bold text-success' : '' }}" href="{{ route('ordersheet.index') }}"><i class="bi bi-journal-text"></i> অর্ডার শীট</a></li>
+          </ul>
+          <div class="d-flex align-items-center gap-3 ms-lg-3">
+            <span class="text-success fw-semibold small">
+              {{ auth()->user()->name }} — {{ auth()->user()->roleLabel() }}
+            </span>
+            <form method="POST" action="{{ route('logout') }}" class="mb-0">
+              @csrf
+              <button class="btn btn-outline-success btn-sm"><i class="bi bi-box-arrow-right"></i> লগআউট</button>
+            </form>
+          </div>
+        @endauth
+
+        @guest
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> লগইন</a></li>
+          </ul>
+        @endguest
       </div>
     </div>
   </nav>
