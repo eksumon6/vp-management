@@ -47,6 +47,7 @@ Route::post('/payments',               [PaymentsController::class, 'store'])->na
 Route::post('/notices/preview',     [NoticeController::class, 'preview'])->name('notices.preview');        // HTML preview screen
 Route::post('/notices/preview-pdf', [NoticeController::class, 'previewPdf'])->name('notices.preview.pdf'); // inline popup preview
 Route::post('/notices/generate',    [NoticeController::class, 'generate'])->name('notices.generate');      // final generate & download
+Route::post('/notices/mark-issued', [NoticeController::class, 'markIssued'])->name('notices.mark-issued'); // dues list manual issue mark
 
 
 // Route::get('/reports/collections', [CollectionReportController::class, 'index'])->name('reports.collections');

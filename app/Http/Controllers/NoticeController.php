@@ -22,7 +22,11 @@ class NoticeController extends Controller
         $by = app('calendar')->currentBanglaYear();
 
         // 🔴 গুরুত্বপূর্ণ: lessee.persons eager-load করলাম
-        $leases = Lease::with(['property.plots','lessee.persons'])
+        $leases = Lease::with([
+                'property.plots',
+                'lessee.persons',
+                'notices' => fn($q) => $q->latest('issue_date')->latest('generated_at'),
+            ])
             ->whereIn('id', $data['lease_ids'])
             ->get();
 
@@ -43,6 +47,10 @@ class NoticeController extends Controller
             'date_en'     => 'required|string|max:255',
             'lease_ids'   => 'required|array',
             'lease_ids.*' => 'exists:leases,id',
+            'process_no'  => 'nullable|string|max:255',
+            'issue_date'  => 'nullable|date',
+            'due_year'    => 'nullable|string|max:255',
+            'due_amount'  => 'nullable|string|max:255',
         ]);
 
         $by     = app('calendar')->currentBanglaYear();
@@ -81,6 +89,9 @@ class NoticeController extends Controller
             'date_bn' => $validated['date_bn'],
             'date_en' => $validated['date_en'],
             'by'      => $by,
+            'process_no' => $validated['process_no'] ?? '',
+            'due_year'   => $validated['due_year'] ?? '',
+            'due_amount' => $validated['due_amount'] ?? '',
         ], [], [
             'format'            => 'A4',
             'orientation'       => 'P',
@@ -105,6 +116,10 @@ class NoticeController extends Controller
             'date_en'     => 'required|string|max:255',
             'lease_ids'   => 'required|array',
             'lease_ids.*' => 'exists:leases,id',
+            'process_no'  => 'nullable|string|max:255',
+            'issue_date'  => 'nullable|date',
+            'due_year'    => 'nullable|string|max:255',
+            'due_amount'  => 'nullable|string|max:255',
         ]);
 
         $by     = app('calendar')->currentBanglaYear();
@@ -146,6 +161,9 @@ class NoticeController extends Controller
             'date_bn' => $validated['date_bn'],
             'date_en' => $validated['date_en'],
             'by'      => $by,
+            'process_no' => $validated['process_no'] ?? '',
+            'due_year'   => $validated['due_year'] ?? '',
+            'due_amount' => $validated['due_amount'] ?? '',
         ], [], [
             'format'            => 'A4',
             'orientation'       => 'P',
@@ -165,11 +183,53 @@ class NoticeController extends Controller
             Notice::create([
                 'lease_id'     => $lease->id,
                 'generated_by' => $userId,
+                'process_no'   => $validated['process_no'] ?? null,
+                'issue_date'   => $validated['issue_date'] ?? null,
+                'due_year'     => $validated['due_year'] ?? null,
+                'due_amount'   => $validated['due_amount'] ?? null,
                 'file_path'    => $fullPath,
                 'generated_at' => now(),
             ]);
         }
 
         return response()->download(Storage::path($fullPath));
+    }
+
+    // বকেয়া রিপোর্ট টেবিল থেকে ম্যানুয়ালি "নোটিশ জারি হয়েছে" মার্ক করা
+    public function markIssued(Request $req)
+    {
+        $validated = $req->validate([
+            'lease_id'   => 'required|exists:leases,id',
+            'issue_date' => 'nullable|date',
+            'process_no' => 'nullable|string|max:255',
+        ]);
+
+        $issueDate = $validated['issue_date'] ?? now('Asia/Dhaka')->toDateString();
+
+        $notice = Notice::query()
+            ->where('lease_id', $validated['lease_id'])
+            ->whereDate('issue_date', $issueDate)
+            ->where('file_path', 'manual_notice_issue')
+            ->latest('id')
+            ->first();
+
+        if ($notice) {
+            $notice->update([
+                'generated_by' => auth()->id() ?: null,
+                'process_no'   => $validated['process_no'] ?? null,
+                'generated_at' => now(),
+            ]);
+        } else {
+            Notice::create([
+                'lease_id'     => $validated['lease_id'],
+                'generated_by' => auth()->id() ?: null,
+                'process_no'   => $validated['process_no'] ?? null,
+                'issue_date'   => $issueDate,
+                'file_path'    => 'manual_notice_issue',
+                'generated_at' => now(),
+            ]);
+        }
+
+        return response()->json(['ok' => true]);
     }
 }

@@ -44,8 +44,10 @@ class ReportController extends Controller
         $rows = $all->filter(fn($l) => $l->years_due > 0)->values();
 
         // --- অ্যাপ্লিকেশন অ্যাগ্রিগেশন: শুধুমাত্র non-deleted (deleted_at IS NULL) ---
-        $leaseIds = $rows->pluck('id')->all();
-        $appAgg   = collect();
+        $leaseIds      = $rows->pluck('id')->all();
+        $appAgg        = collect();
+        $noticeCounts  = collect();
+        $latestNotices = collect();
 
         if (!empty($leaseIds)) {
             $appAgg = DB::table('applications')
@@ -56,6 +58,24 @@ class ReportController extends Controller
                 ->whereNull('deleted_at') // ✅ soft-deleted আবেদন বাদ
                 ->groupBy('lease_id')
                 ->get()
+                ->keyBy('lease_id');
+
+            $noticeCounts = DB::table('notices')
+                ->selectRaw('lease_id, COUNT(*) AS total_notices')
+                ->whereIn('lease_id', $leaseIds)
+                ->whereNull('deleted_at')
+                ->groupBy('lease_id')
+                ->get()
+                ->keyBy('lease_id');
+
+            $latestNotices = DB::table('notices')
+                ->select('lease_id', 'issue_date', 'process_no')
+                ->whereIn('lease_id', $leaseIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('issue_date')
+                ->orderByDesc('generated_at')
+                ->get()
+                ->unique('lease_id')
                 ->keyBy('lease_id');
         }
 
@@ -90,7 +110,23 @@ class ReportController extends Controller
                 $btnNotice = '<button type="button" class="text-rose-600 btn-notice" data-id="'.$l->id.'">Notice</button>';
                 return $btnRenew.' | '.$btnNotice;
             })
-            ->rawColumns(['checkbox','actions'])
+            ->addColumn('notice_issued', function($l) use ($noticeCounts, $latestNotices){
+                $count  = (int)($noticeCounts->get($l->id)->total_notices ?? 0);
+                $latest = $latestNotices->get($l->id);
+                $isChecked = $count > 0 ? 'checked' : '';
+                $issueDate = $latest?->issue_date ?? '';
+                $processNo = e($latest?->process_no ?? '');
+
+                return '<div class="d-flex align-items-center gap-2">'
+                    .'<input type="checkbox" class="form-check-input notice-issued-chk" '
+                    .'data-lease-id="'.$l->id.'" '
+                    .'data-issue-date="'.$issueDate.'" '
+                    .'data-process-no="'.$processNo.'" '
+                    .$isChecked.'>'
+                    .'<small class="text-muted">'.($count > 0 ? 'হ্যাঁ' : 'না').'</small>'
+                    .'</div>';
+            })
+            ->rawColumns(['checkbox','actions','notice_issued'])
             ->toJson();
     }
 }
